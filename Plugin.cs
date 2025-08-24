@@ -7,6 +7,9 @@ using HarmonyLib;
 // using static Obeliskial_Essentials.Essentials;
 using System;
 using System.Collections.Generic;
+using static Obeliskial_Essentials.Essentials;
+using static Obeliskial_Essentials.CardDescriptionNew;
+using BepInEx.Bootstrap;
 
 
 // The Plugin csharp file is used to specify some general info about your plugin. and set up things for 
@@ -40,14 +43,15 @@ namespace OversizedPets
 
         // You can use: config = Config.Bind() to set the title, default value, and description of the config.
         // It automatically creates the appropriate configs.
-
+        public static bool EssentialsInstalled = false;
         public static ConfigEntry<bool> EnableMod { get; set; }
         public static ConfigEntry<bool> EnableDebugging { get; set; }
-        public static ConfigEntry<bool> EnablePerkChangeInTowns { get; set; }
-        public static ConfigEntry<bool> EnablePerkChangeWhenever { get; set; }
-        public static bool EnablePerkChangeInTownsMP { get; set; }
-        public static bool EnablePerkChangeWheneverMP { get; set; }
-
+        public static ConfigEntry<bool> IncreasePetSize { get; set; }
+        public static ConfigEntry<float> PetSizeScaleFactor { get; set; }
+        public static ConfigEntry<bool> IncreaseHeroSize { get; set; }
+        public static ConfigEntry<float> HeroSizeScaleFactor { get; set; }
+        public static ConfigEntry<bool> IncreaseNPCSize { get; set; }
+        public static ConfigEntry<float> NPCSizeScaleFactor { get; set; }
 
         internal int ModDate = int.Parse(DateTime.Today.ToString("yyyyMMdd"));
         private readonly Harmony harmony = new(PluginInfo.PLUGIN_GUID);
@@ -66,25 +70,31 @@ namespace OversizedPets
             string modName = "OversizedPets";
             EnableMod = Config.Bind(new ConfigDefinition(modName, "EnableMod"), true, new ConfigDescription("Enables the mod. If false, the mod will not work then next time you load the game."));
             EnableDebugging = Config.Bind(new ConfigDefinition(modName, "EnableDebugging"), false, new ConfigDescription("Enables the debugging"));
-            EnablePerkChangeInTowns = Config.Bind(new ConfigDefinition(modName, "EnablePerkChangeInTowns"), true, new ConfigDescription("Enables you to change perks in any town."));
-            EnablePerkChangeInTownsMP = true; // = Config.Bind(new ConfigDefinition(modName, "EnablePerkChangeInTownsMP"), true, new ConfigDescription("Enables you to change perks in any town for multiplayer."));
-            EnablePerkChangeWhenever = Config.Bind(new ConfigDefinition(modName, "EnablePerkChangeWhenever"), false, new ConfigDescription("Enables you to change perks at any time."));
-            EnablePerkChangeWheneverMP = true; //Config.Bind(new ConfigDefinition(modName, "EnablePerkChangeWheneverMP"), false, new ConfigDescription("Enables you to change perks at any time for Multiplayer."));
+            IncreasePetSize = Config.Bind(new ConfigDefinition(modName, "Increase Pet Size"), true, new ConfigDescription("If true, will increase all pets by the PetSizeScaleFactor."));
+            PetSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "PetSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase pets by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
+            IncreaseHeroSize = Config.Bind(new ConfigDefinition(modName, "Increase Hero Size"), false, new ConfigDescription("If true, will increase all Heroes by the HeroSizeScaleFactor."));
+            HeroSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "HeroSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase Heroes by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
+            IncreaseNPCSize = Config.Bind(new ConfigDefinition(modName, "Increase NPC Size"), false, new ConfigDescription("If true, will increase all NPCs by the NPCSizeScaleFactor."));
+            NPCSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "NPCSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase NPCs by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
+            if (PetSizeScaleFactor.Value < 0.05f) { PetSizeScaleFactor.Value = 1.0f; }
+            if (HeroSizeScaleFactor.Value < 0.05f) { HeroSizeScaleFactor.Value = 1.0f; }
+            if (NPCSizeScaleFactor.Value < 0.05f) { NPCSizeScaleFactor.Value = 1.0f; }
 
+            EssentialsInstalled = Chainloader.PluginInfos.ContainsKey("com.stiffmeds.obeliskialessentials");
 
+            // Register with Obeliskial Essentials
+            if (EssentialsInstalled)
+            {
+                RegisterMod(
+                    _name: PluginInfo.PLUGIN_NAME,
+                    _author: "binbin",
+                    _description: "Skilled NPCs",
+                    _version: PluginInfo.PLUGIN_VERSION,
+                    _date: ModDate,
+                    _link: @"https://github.com/binbinmods/SkilledNPCs"
+                );
 
-            // DevMode = Config.Bind(new ConfigDefinition("DespairMode", "DevMode"), false, new ConfigDescription("Enables all of the things for testing."));
-
-
-            // Register with Obeliskial Essentials, delete this if you don't need it.
-            // RegisterMod(
-            //     _name: PluginInfo.PLUGIN_NAME,
-            //     _author: "binbin",
-            //     _description: "Sample Plugin",
-            //     _version: PluginInfo.PLUGIN_VERSION,
-            //     _date: ModDate,
-            //     _link: @"https://github.com/binbinmods/SampleCSharpWorkspace"
-            // );
+            }
 
             // apply patches, this functionally runs all the code for Harmony, running your mod
             if (EnableMod.Value) { harmony.PatchAll(); }

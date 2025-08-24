@@ -16,7 +16,16 @@ namespace OversizedPets
     public class OversizedPetsFunctions
     {
 
+        public static bool IsHost()
+        {
+            return GameManager.Instance.IsMultiplayer() && NetworkManager.Instance.IsMaster();
+        }
 
+        public static void ResizeTransform(ref Transform transform, float scale, string id = "")
+        {
+            transform.localScale = new Vector3(scale, scale, transform.localScale.z);
+            LogDebug("Setting " + id + " size to: " + scale.ToString());
+        }
 
 
     }

@@ -29,146 +29,62 @@ namespace OversizedPets
     {
         public static bool devMode = false; //DevMode.Value;
         public static bool bSelectingPerk = false;
-        public static bool IsHost()
-        {
-            return GameManager.Instance.IsMultiplayer() && NetworkManager.Instance.IsMaster();
-        }
+
 
 
 
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(PerkTree), "CanModify")]
-        public static void CanModifyPostfix(ref bool __result)
+        [HarmonyPatch(typeof(Character), "BeginRound")]
+        public static void BeginRoundPostfix(ref Character __instance)
         {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
-                __result = true;
-        }
-
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PerkTree), "SelectPerk")]
-        public static void SelectPerkPrefix()
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
-                bSelectingPerk = true;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PerkTree), "SelectPerk")]
-        public static void SelectPerkPostfix()
-        {
-            bSelectingPerk = false;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(AtOManager), "CharInTown")]
-        public static void CharInTownPostfix(ref bool __result)
-        {
-            if (bSelectingPerk)
-                __result = true;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(AtOManager), "GetTownTier")]
-        public static void GetTownTierPostfix(ref int __result)
-        {
-            if (bSelectingPerk)
-                __result = 0;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SettingsManager), "IsActive")]
-        public static void SettingsManagerIsActivePostfix(ref bool __result)
-        {
-            if (bSelectingPerk)
-                __result = false;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(AlertManager), "IsActive")]
-        public static void AlertManagerIsActivePostfix(ref bool __result)
-        {
-            if (bSelectingPerk)
-                __result = false;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MadnessManager), "IsActive")]
-        public static void MadnessManagerIsActivePostfix(ref bool __result)
-        {
-            if (bSelectingPerk)
-                __result = false;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PerkNode), "OnMouseUp")]
-        public static void OnMouseUpPrefix(ref PerkNode __instance)
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
+            bool isValidHero = __instance != null && __instance.HeroData != null && __instance.HeroData.HeroSubClass != null && __instance.Alive && __instance.HeroItem != null && __instance.HeroItem.animatedTransform != null;
+            bool isValidNPC = __instance != null && __instance.NpcData != null && __instance.Alive && __instance.NPCItem != null && __instance.NPCItem.animatedTransform != null;
+            if (isValidHero)
             {
-                Traverse.Create(__instance).Field("nodeLocked").SetValue(false);
-                __instance.iconLock.gameObject.SetActive(false);
-                bSelectingPerk = true;
+                string subclassID = __instance.HeroData.HeroSubClass.Id;
+                if (IncreaseHeroSize.Value)
+                {
+                    float sizeIncrease = HeroSizeScaleFactor.Value;
+                    ResizeTransform(ref __instance.HeroItem.animatedTransform, sizeIncrease, subclassID);
+
+                }
+
+                if (IncreasePetSize.Value && __instance.Pet != null)
+                {
+                    string petID = __instance.Pet;
+                    float sizeIncrease = PetSizeScaleFactor.Value;
+
+                    if (__instance.HeroItem.PetItem != null && __instance.HeroItem.PetItem.animatedTransform != null)
+                    {
+                        ResizeTransform(ref __instance.HeroItem.PetItem.animatedTransform, sizeIncrease, petID);
+                    }
+                    if (__instance.HeroItem.PetItemEnchantment != null && __instance.HeroItem.PetItemEnchantment.animatedTransform != null)
+                    {
+                        ResizeTransform(ref __instance.HeroItem.PetItemEnchantment.animatedTransform, sizeIncrease, petID);
+                    }
+                }
+
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PerkNode), "OnMouseUp")]
-        public static void OnMouseUpPostfix()
-        {
-            bSelectingPerk = false;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PerkNode), "OnMouseEnter")]
-        public static void OnMouseEnterPrefix(ref PerkNode __instance)
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
+            else if (IncreaseNPCSize.Value && isValidNPC)
             {
-                bSelectingPerk = true;
+                float sizeIncrease = NPCSizeScaleFactor.Value;
+                ResizeTransform(ref __instance.NPCItem.animatedTransform, sizeIncrease, __instance.NpcData.Id);
+                if (IncreasePetSize.Value && __instance.Pet != null)
+                {
+                    string petID = __instance.Pet;
+                    float sizeIncreasePet = PetSizeScaleFactor.Value;
+
+                    if (__instance.NPCItem.PetItem != null && __instance.NPCItem.PetItem.animatedTransform != null)
+                    {
+                        ResizeTransform(ref __instance.NPCItem.PetItem.animatedTransform, sizeIncreasePet, petID);
+                    }
+                    if (__instance.NPCItem.PetItemEnchantment != null && __instance.NPCItem.PetItemEnchantment.animatedTransform != null)
+                    {
+                        ResizeTransform(ref __instance.NPCItem.PetItemEnchantment.animatedTransform, sizeIncreasePet, petID);
+                    }
+                }
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PerkNode), "OnMouseEnter")]
-        public static void OnMouseEnterPostfix()
-        {
-            bSelectingPerk = false;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PerkTree), "Show")]
-        public static void ShowPostfix(ref PerkTree __instance, ref int ___totalAvailablePoints)
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
-            {
-                __instance.buttonReset.gameObject.SetActive(value: true);
-                __instance.buttonImport.gameObject.SetActive(value: true);
-                __instance.buttonExport.gameObject.SetActive(value: true);
-                __instance.saveSlots.gameObject.SetActive(value: true);
-                __instance.buttonConfirm.gameObject.SetActive(value: true);
-                //__instance.buttonConfirm.Enable();
-            }
-            return;
-        }
-
-        // 20230401 ModifyPerks fix?
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PerkNode), "SetIconLock")]
-        public static void SetIconLockPrefix(ref bool _state)
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
-                _state = false;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PerkNode), "SetLocked")]
-        public static void SetLockedPrefix(ref bool _status)
-        {
-            if (IsHost() ? EnablePerkChangeWhenever.Value : EnablePerkChangeWheneverMP)
-                _status = false;
         }
 
 
