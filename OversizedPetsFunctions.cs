@@ -23,10 +23,9 @@ namespace OversizedPets
 
         public static void ResizeTransform(ref Transform transform, float scale, string id = "")
         {
-            transform.localScale = new Vector3(scale, scale, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x * scale, transform.localScale.y * scale, transform.localScale.z);
             LogDebug("Setting " + id + " size to: " + scale.ToString());
         }
-
 
     }
 }

@@ -70,15 +70,19 @@ namespace OversizedPets
             string modName = "OversizedPets";
             EnableMod = Config.Bind(new ConfigDefinition(modName, "EnableMod"), true, new ConfigDescription("Enables the mod. If false, the mod will not work then next time you load the game."));
             EnableDebugging = Config.Bind(new ConfigDefinition(modName, "EnableDebugging"), false, new ConfigDescription("Enables the debugging"));
-            IncreasePetSize = Config.Bind(new ConfigDefinition(modName, "Increase Pet Size"), true, new ConfigDescription("If true, will increase all pets by the PetSizeScaleFactor."));
+            IncreasePetSize = Config.Bind(new ConfigDefinition(modName, "Increase Pet Size"), true, new ConfigDescription("If true, will increase all pets by the PetSizeScaleFactor. Updates every round, so restart combat to see changes."));
             PetSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "PetSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase pets by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
-            IncreaseHeroSize = Config.Bind(new ConfigDefinition(modName, "Increase Hero Size"), false, new ConfigDescription("If true, will increase all Heroes by the HeroSizeScaleFactor."));
+            IncreaseHeroSize = Config.Bind(new ConfigDefinition(modName, "Increase Hero Size"), false, new ConfigDescription("If true, will increase all Heroes by the HeroSizeScaleFactor. Updates every round, so restart combat to see changes."));
             HeroSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "HeroSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase Heroes by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
-            IncreaseNPCSize = Config.Bind(new ConfigDefinition(modName, "Increase NPC Size"), false, new ConfigDescription("If true, will increase all NPCs by the NPCSizeScaleFactor."));
+            IncreaseNPCSize = Config.Bind(new ConfigDefinition(modName, "Increase NPC Size"), false, new ConfigDescription("If true, will increase all NPCs by the NPCSizeScaleFactor. Updates every round, so restart combat to see changes."));
             NPCSizeScaleFactor = Config.Bind(new ConfigDefinition(modName, "NPCSizeScaleFactor"), 1.25f, new ConfigDescription("Scale factor to increase NPCs by. 1.0 = no change, 2.0 = double size, 0.5 = half size. Does not work if less than 0.05."));
             if (PetSizeScaleFactor.Value < 0.05f) { PetSizeScaleFactor.Value = 1.0f; }
             if (HeroSizeScaleFactor.Value < 0.05f) { HeroSizeScaleFactor.Value = 1.0f; }
             if (NPCSizeScaleFactor.Value < 0.05f) { NPCSizeScaleFactor.Value = 1.0f; }
+
+            PetSizeScaleFactor.Value = 2.0f;
+            // HeroSizeScaleFactor.Value = 1.5f;
+            // NPCSizeScaleFactor.Value = 1.25f;
 
             EssentialsInstalled = Chainloader.PluginInfos.ContainsKey("com.stiffmeds.obeliskialessentials");
 
@@ -88,7 +92,7 @@ namespace OversizedPets
                 RegisterMod(
                     _name: PluginInfo.PLUGIN_NAME,
                     _author: "binbin",
-                    _description: "Skilled NPCs",
+                    _description: "Oversized Pets",
                     _version: PluginInfo.PLUGIN_VERSION,
                     _date: ModDate,
                     _link: @"https://github.com/binbinmods/SkilledNPCs"
